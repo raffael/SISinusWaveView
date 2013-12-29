@@ -98,7 +98,7 @@ withNumberOfChannels:(UInt32)numberOfChannels {
 		// Choose the color based on the progress (that is, based on the wave idx)
 		[[NSColor colorWithCalibratedWhite:_whiteValue alpha:progress/3.0*2+1.0/3.0] set];
 		
-		for(float x = 0; x<width; x+=_density) {
+		for(float x = 0; x<width+_density; x+=_density) {
 			
 			// We use a parable to scale the sinus wave, that has its peak in the middle of the view.
 			float scaling = -pow(1/mid*(x-mid),2)+1;
