@@ -93,20 +93,18 @@ withNumberOfChannels:(UInt32)numberOfChannels {
 }
 #pragma mark - Drawing
 
-- (void)drawRect:(NSRect)dirtyRect {
+- (void)drawRect:(CGRect)dirtyRect {
 	
 	// We draw multiple sinus waves, with equal phases but altered amplitudes, multiplied by a parable function.
 	for(int i=0;i<_waves+1;i++) {
 		
-		[[NSGraphicsContext currentContext] saveGraphicsState];
-		NSGraphicsContext * nsGraphicsContext = [NSGraphicsContext currentContext];
-		CGContextRef context = (CGContextRef) [nsGraphicsContext graphicsPort];
+        CGContextRef context = UIGraphicsGetCurrentContext();
 		
 		// The first wave is drawn with a 2px stroke width, all others a with 1px stroke width.
 		CGContextSetLineWidth(context, (i==0)? 2:1 );
 		
-		float halfHeight = NSHeight(self.bounds)/2;
-		float width = NSWidth(self.bounds);
+		float halfHeight = (self.bounds.size.height)/2;
+		float width = NSWidth(self.bounds.size.width);
 		float mid = width /2.0;
 		
 		const float maxAmplitude = halfHeight-4; // 4 corresponds to twice the stroke width
@@ -116,7 +114,7 @@ withNumberOfChannels:(UInt32)numberOfChannels {
 		float normedAmplitude = (1.5*progress-0.5)*_amplitude;
 		
 		// Choose the color based on the progress (that is, based on the wave idx)
-		[[NSColor colorWithCalibratedWhite:_whiteValue alpha:progress/3.0*2+1.0/3.0] set];
+		[[UIColor colorWithRed:(255/255.f) green:(255/255.f) blue:(255/255.f) alpha:progress/3.0*2+1.0/3.0] set];
 		
 		for(float x = 0; x<width+_density; x+=_density) {
 			
