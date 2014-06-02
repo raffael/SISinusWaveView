@@ -90,7 +90,7 @@ withNumberOfChannels:(UInt32)numberOfChannels {
 		[_microphone stopFetchingAudio];
 		_amplitude = 0;
 	}
-	[self setNeedsDisplay:YES];
+	[self setNeedsDisplay];
 }
 #pragma mark - Drawing
 
