@@ -2,6 +2,7 @@
 //  SISinusWaveView.m
 //
 //  Created by Raffael Hannemann on 12/28/13.
+//  Updated for iOS by Benjamin Martin on 6/2/14.
 //  Copyright (c) 2013 Raffael Hannemann. All rights reserved.
 //
 
