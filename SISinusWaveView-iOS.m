@@ -9,7 +9,7 @@
 
 @implementation SISinusWaveView
 
-- (id)initWithFrame:(NSRect)frame
+- (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
     if (self) {
@@ -19,6 +19,24 @@
 		_amplitude = 1.0;
 		_whiteValue = 1.0;
 		_idleAmplitude = 0.1;
+		_dampingFactor = 0.86;
+		_waves = 5;
+		_phaseShift = -0.15;
+		_density = 5.0;
+    }
+    return self;
+}
+
+- (id)initWithCoder:(NSCoder *)coder
+{
+    self = [super initWithCoder:coder];
+    if (self) {
+		_microphone = [EZMicrophone microphoneWithDelegate:self];
+        _frequency = 1.5;
+		_phase = 0;
+		_amplitude = 1.0;
+		_whiteValue = 1.0;
+		_idleAmplitude = 0.0;
 		_dampingFactor = 0.86;
 		_waves = 5;
 		_phaseShift = -0.15;
