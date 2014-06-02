@@ -75,7 +75,9 @@ withNumberOfChannels:(UInt32)numberOfChannels {
 		_phase += _phaseShift;
 		_amplitude = fmax( fmin(_dampingAmplitude*20, 1.0), _idleAmplitude);
         
-		[self setNeedsDisplay:tick==0];
+        if (tick == 0) {
+            [self setNeedsDisplay];
+        }
 	});
 }
 
