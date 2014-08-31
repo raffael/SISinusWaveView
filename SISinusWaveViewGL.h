@@ -11,7 +11,7 @@
 #import "EZAudio.h"
 
 /** This NSView subclass can be used in conjunction with EZAudio to visualize the microphone input similar to an effect used in Apple's Siri. */
-@interface SISinusWaveView : NSView <EZMicrophoneDelegate> {
+@interface SISinusWaveViewGL : NSOpenGLView <EZMicrophoneDelegate> {
 	int tick; // Can be used to control the drawing FPS
 }
 
@@ -24,9 +24,6 @@
 /// The phase of the sinus wave. Default: 0.
 @property (assign) float phase;
 
-/// A flag that clears the view rect before re-drawing. Default: YES.
-@property (assign) BOOL clearOnDraw;
-
 /// The frequency of the sinus wave. The higher the value, the more sinus wave peaks you will have. Default: 1.5
 @property (assign) float frequency;
 
@@ -37,10 +34,10 @@
 @property (assign) float waves;
 
 /// The actual amplitude the view is visualizing. This amplitude is based on the microphone's amplitude
-@property (assign) float amplitude;
+@property (assign,readonly) float amplitude;
 
 /// The damped amplitude.
-@property (assign) float dampingAmplitude;
+@property (assign,readonly) float dampingAmplitude;
 
 /// The lines are joined stepwise, the more dense you draw, the more CPU power is used. Default: 5.
 @property (assign) float density;
@@ -48,20 +45,20 @@
 /// The phase shift that will be applied with each delivering of the microphone's value. A higher value will make the waves look more nervous. Default: -0.15.
 @property (assign) float phaseShift;
 
-/// The color to draw the waves with. Default: white.
+/// The color to draw the waves with. Default: black.
 @property (strong) NSColor *waveColor;
+
+/// The color to draw the background with. Default: white.
+@property (strong) NSColor *backgroundColor;
 
 /// Set to NO, if you want to stop the view to oscillate. If an idleAmplitude is set, it will be used to keep the waves moving.
 @property (assign,nonatomic) BOOL oscillating;
 
-/// Set to NO, if you want the microphone to stop listening. Default: YES.
-@property (assign,nonatomic) BOOL listen;
-
 /// The width of the line to draw the waves with. Background lines will have half the width. Default: 2.
 @property (assign) float lineWidth;
 
-/// The color to draw the background with. Default: clearColor.
-@property (strong) NSColor *backgroundColor;
+/// Set to NO, if you want the microphone to stop listening. Default: YES.
+@property (assign,nonatomic) BOOL listen;
 
 /// The left and right margin between view bounds and the wave oscillation beginning. Default: 0.
 @property (assign) float marginLeft;

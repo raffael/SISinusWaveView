@@ -1,13 +1,15 @@
 //
-//  SISinusWaveView.m
+//  SISinusWaveViewGL.m
+//  VisVoiceKill
 //
-//  Created by Raffael Hannemann on 12/28/13.
-//  Copyright (c) 2013 Raffael Hannemann. All rights reserved.
+//  Created by Raffael Hannemann on 1/1/14.
+//  Copyright (c) 2014 Raffael Hannemann. All rights reserved.
 //
 
-#import "SISinusWaveView.h"
+#import <OpenGL/gl.h>
+#import "SISinusWaveViewGL.h"
 
-@implementation SISinusWaveView
+@implementation SISinusWaveViewGL
 
 - (id)initWithFrame:(NSRect)frame
 {
@@ -17,19 +19,25 @@
         _frequency = 1.5;
 		_phase = 0;
 		_amplitude = 1.0;
-		_waveColor = [NSColor whiteColor];
-		_backgroundColor = [NSColor clearColor];
+		_waveColor = [NSColor blackColor];
+		_backgroundColor = [NSColor whiteColor];
 		_idleAmplitude = 0.1;
 		_dampingFactor = 0.86;
 		_waves = 5;
 		_phaseShift = -0.15;
-		_density = 15.0;
+		_density = 5.0;
 		_marginLeft = 0;
+		_lineWidth = 2;
 		_marginRight = 0;
-		_lineWidth = 2.0;
 		self.listen = YES;
+		
     }
     return self;
+}
+
+- (void) prepareOpenGL {
+	if ([self.window backingScaleFactor] > 1.0)
+		[self setWantsBestResolutionOpenGLSurface:YES];
 }
 
 #pragma mark - Customize the Audio Plot
@@ -64,7 +72,7 @@ withNumberOfChannels:(UInt32)numberOfChannels {
 		
 		_phase += _phaseShift;
 		_amplitude = fmax( fmin(_dampingAmplitude*20, 1.0), _idleAmplitude);
-
+		
 		[self setNeedsDisplay:tick==0];
 	});
 }
@@ -86,20 +94,42 @@ withNumberOfChannels:(UInt32)numberOfChannels {
 	if ([self isHidden])
 		return;
 	
-	if (_clearOnDraw) {
-		[_backgroundColor set];
-		NSRectFill(self.bounds);
-	}
+	[[self openGLContext] makeCurrentContext];
 	
+	CGFloat red = 0;
+	CGFloat green = 0;
+	CGFloat blue = 0;
+	CGFloat alpha = 0;
+	[self storeRGBValuesForColor:_backgroundColor inR:&red g:&green b:&blue a:&alpha];
+
+	// Lock
+	CGLLockContext([[self openGLContext] CGLContextObj]);
+	glClearColor(red, green, blue, alpha);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	// Get view dimensions in pixels
+    NSRect backingBounds = [self convertRectToBacking:[self bounds]];
+	
+    GLsizei backingPixelWidth  = (GLsizei)(backingBounds.size.width),
+	backingPixelHeight = (GLsizei)(backingBounds.size.height);
+	
+    // Set viewport
+    glViewport(0, 0, backingPixelWidth, backingPixelHeight);
+	
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	//gluOrtho2D(0., NSWidth(self.bounds), 0., NSHeight(self.bounds));
+	glOrtho(0., NSWidth(self.bounds), 0., NSHeight(self.bounds), -1., 1.);
+	
+	glEnable (GL_LINE_SMOOTH);
+	glEnable (GL_BLEND);
+	
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+
 	// We draw multiple sinus waves, with equal phases but altered amplitudes, multiplied by a parable function.
 	for(int i=0;i<_waves+1;i++) {
 		
-		[[NSGraphicsContext currentContext] saveGraphicsState];
-		NSGraphicsContext * nsGraphicsContext = [NSGraphicsContext currentContext];
-		CGContextRef context = (CGContextRef) [nsGraphicsContext graphicsPort];
-		
-		// The first wave is drawn with a 2px stroke width, all others a with 1px stroke width.
-		CGContextSetLineWidth(context, (i==0)? _lineWidth:_lineWidth*.5 );
 		
 		float halfHeight = NSHeight(self.bounds)/2;
 		float width = NSWidth(self.bounds)-_marginLeft-_marginRight;
@@ -116,17 +146,17 @@ withNumberOfChannels:(UInt32)numberOfChannels {
 		CGFloat green = 0;
 		CGFloat blue = 0;
 		CGFloat alpha = 0;
-		const CGFloat *components = CGColorGetComponents(_waveColor.CGColor);
-        red = components[0];
-        green = components[1];
-        blue = components[2];
-        alpha = components[3];
+		[self storeRGBValuesForColor:_waveColor inR:&red g:&green b:&blue a:&alpha];
 		
-		NSColor *thisColor = [NSColor colorWithCalibratedRed:red green:green blue:blue alpha:alpha *(progress/3.0*2+1.0/3.0)];
-		[thisColor set];
+		glColor4f(red,green,blue, alpha *(progress/3.0*2+1.0/3.0));
 		
-		float maxX = NSWidth(self.bounds)-_marginRight;
-		CGContextMoveToPoint(context, 0, halfHeight);
+		glLineWidth(i==0? _lineWidth:_lineWidth/2.0);
+		
+		float lastX = _marginLeft;
+		float lastY = halfHeight;
+		
+		glBegin(GL_LINES);
+		[self drawLineFromSX:0 andSY:halfHeight toEX:lastX andEY:lastY];
 		for(float x = 0; x<width+_density; x+=_density) {
 			
 			// We use a parable to scale the sinus wave, that has its peak in the middle of the view.
@@ -134,15 +164,48 @@ withNumberOfChannels:(UInt32)numberOfChannels {
 			if (!_oscillating) {
 				normedAmplitude = _idleAmplitude;
 			}
-						
+			
 			float y = scaling *maxAmplitude *normedAmplitude *sinf(2 *M_PI *(x / width) *_frequency +_phase) + halfHeight;
 			
-			CGContextAddLineToPoint(context, x+_marginLeft, y);
+			float lx = x + _marginLeft;
+			[self drawLineFromSX:lastX andSY:lastY toEX:lx andEY:y];
+			lastX = lx;
+			lastY = y;
 		}
-		CGContextAddLineToPoint(context, NSWidth(self.bounds), halfHeight);
 		
-		CGContextStrokePath(context);
+		
+		[self drawLineFromSX:NSWidth(self.bounds)-_marginRight andSY:halfHeight toEX:NSWidth(self.bounds) andEY:halfHeight];
+		glEnd();
+		
 	}
+	glFlush();
+	
+	// Flush and unlock
+	CGLFlushDrawable([[self openGLContext] CGLContextObj]);
+	CGLUnlockContext([[self openGLContext] CGLContextObj]);
+	
+}
+
+- (void) storeRGBValuesForColor: (NSColor *) source inR: (CGFloat *) r g: (CGFloat *) g b: (CGFloat *) b a: (CGFloat *) a {
+	if (CGColorGetNumberOfComponents(source.CGColor) == 2) {
+		const CGFloat *colorComponents = CGColorGetComponents(source.CGColor);
+		*r = colorComponents[0];
+		*g = colorComponents[0];
+		*b = colorComponents[0];
+		*a = colorComponents[1];
+	}
+	else if (CGColorGetNumberOfComponents(source.CGColor) == 4) {
+		const CGFloat * colorComponents = CGColorGetComponents(source.CGColor);
+		*r = colorComponents[0];
+		*g = colorComponents[1];
+		*b = colorComponents[2];
+		*a = colorComponents[3];
+	}
+}
+
+- (void) drawLineFromSX: (float) sx andSY: (float) sy toEX: (float) ex andEY: (float) ey {
+	glVertex2d(sx, sy);
+	glVertex2d(ex, ey);
 }
 
 @end
