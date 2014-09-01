@@ -7,49 +7,52 @@
 
 #import <Cocoa/Cocoa.h>
 
-// Make sure to add EZAudio to your project!
-#import "EZAudio.h"
+/** This NSView subclass can be used to visualize the microphone input similar to an effect used in Apple's Siri. */
+@class AVAudioRecorder;
 
-/** This NSView subclass can be used in conjunction with EZAudio to visualize the microphone input similar to an effect used in Apple's Siri. */
-@interface SISinusWaveView : NSView <EZMicrophoneDelegate> {
+@interface SISinusWaveView : NSView {
 	int tick; // Can be used to control the drawing FPS
 }
 
-/// The EZAudio microphone object, whose delegate is this view.
-@property (nonatomic,strong) EZMicrophone *microphone;
+#ifndef IBInspectable
+#define IBInspectable /* */
+#endif
+
+/// The recorder object, whose sound level will be used.
+@property (nonatomic,strong) AVAudioRecorder *recorder;
 
 /// The amplitude that is used when the incoming microphone amplitude is near zero. Setting a value greater 0 provides a more vivid visualization.
 @property (assign) float idleAmplitude;
 
 /// The phase of the sinus wave. Default: 0.
-@property (assign) float phase;
+@property (assign) IBInspectable float phase;
 
-/// A flag that clears the view rect before re-drawing. Default: YES.
-@property (assign) BOOL clearOnDraw;
+/// A flag that clears the view rect with the backgroundColor before re-drawing. Default: YES.
+@property (assign) IBInspectable BOOL clearOnDraw;
 
 /// The frequency of the sinus wave. The higher the value, the more sinus wave peaks you will have. Default: 1.5
-@property (assign) float frequency;
+@property (assign) IBInspectable float frequency;
 
 /// The damping factor that is used to calm the wave down after a sound level peak. Default: 0.86
-@property (assign) float dampingFactor;
+@property (assign) IBInspectable float dampingFactor;
 
 /// The number of additional waves in the background. The more waves, to more CPU power is needed. Default: 4.
-@property (assign) float waves;
+@property (assign) IBInspectable float waves;
 
 /// The actual amplitude the view is visualizing. This amplitude is based on the microphone's amplitude
-@property (assign) float amplitude;
+@property (assign) IBInspectable float amplitude;
 
 /// The damped amplitude.
-@property (assign) float dampingAmplitude;
+@property (assign) IBInspectable float dampingAmplitude;
 
 /// The lines are joined stepwise, the more dense you draw, the more CPU power is used. Default: 5.
-@property (assign) float density;
+@property (assign) IBInspectable float density;
 
 /// The phase shift that will be applied with each delivering of the microphone's value. A higher value will make the waves look more nervous. Default: -0.15.
 @property (assign) float phaseShift;
 
 /// The color to draw the waves with. Default: white.
-@property (strong) NSColor *waveColor;
+@property (strong) IBInspectable NSColor *waveColor;
 
 /// Set to NO, if you want to stop the view to oscillate. If an idleAmplitude is set, it will be used to keep the waves moving.
 @property (assign,nonatomic) BOOL oscillating;
@@ -58,13 +61,16 @@
 @property (assign,nonatomic) BOOL listen;
 
 /// The width of the line to draw the waves with. Background lines will have half the width. Default: 2.
-@property (assign) float lineWidth;
+@property (assign) IBInspectable float lineWidth;
 
 /// The color to draw the background with. Default: clearColor.
-@property (strong) NSColor *backgroundColor;
+@property (strong) IBInspectable NSColor *backgroundColor;
 
 /// The left and right margin between view bounds and the wave oscillation beginning. Default: 0.
-@property (assign) float marginLeft;
-@property (assign) float marginRight;
+@property (assign) IBInspectable float marginLeft;
+@property (assign) IBInspectable float marginRight;
+
+/// Override the following method to provide a custom color per location.
+- (NSColor *) colorForLineAtLocation: (CGFloat) location percentalLength: (CGFloat) length;
 
 @end
