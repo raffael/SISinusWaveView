@@ -78,7 +78,7 @@
 - (void) recorderDidRecord: (NSTimer *) timer {
 	[_recorder updateMeters];
 	
-	int requiredTickes = 10; // Alter this to draw more or less often
+	int requiredTickes = 2; // Alter this to draw more or less often
 	tick = (tick+1)%requiredTickes;
 	
 	// Get the recorder's current average power for the first channel, sanitize the value.
