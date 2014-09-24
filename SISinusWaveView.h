@@ -52,7 +52,7 @@
 @property (assign) float phaseShift;
 
 /// The color to draw the waves with. Default: white.
-@property (strong) IBInspectable NSColor *waveColor;
+@property (copy) IBInspectable NSColor *waveColor;
 
 /// Set to NO, if you want to stop the view to oscillate. If an idleAmplitude is set, it will be used to keep the waves moving.
 @property (assign,nonatomic) BOOL oscillating;
@@ -64,7 +64,7 @@
 @property (assign) IBInspectable float lineWidth;
 
 /// The color to draw the background with. Default: clearColor.
-@property (strong) IBInspectable NSColor *backgroundColor;
+@property (copy) IBInspectable NSColor *backgroundColor;
 
 /// The left and right margin between view bounds and the wave oscillation beginning. Default: 0.
 @property (assign) IBInspectable float marginLeft;
